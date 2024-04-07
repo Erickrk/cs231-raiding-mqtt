@@ -1,7 +1,5 @@
 #
 # This is a sample network config uncomment lines to configure the network
-#
-
 
 # Static config for eth0
 auto eth2

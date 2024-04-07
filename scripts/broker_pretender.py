@@ -1,3 +1,6 @@
+# Missing SEQ and ACK numbers
+# Might implement with wireshark
+
 from scapy.all import *
 
 def craft_mqtt_publish(topic, message, qos=0):
@@ -32,6 +35,6 @@ message = "Hijacked mqtt"
 mqtt_packet = craft_mqtt_publish(topic, message, qos=0)
 
 # Example of sending the packet would go here
-# send(ip/tcp/mqtt_packet)  # You need to replace 'ip' and 'tcp' with your actual IP/TCP layers
+# send(ip/tcp/mqtt_packet)
 
 print("MQTT PUBLISH packet crafted.")
