@@ -16,6 +16,9 @@ import sys
 #import lib_scapy
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
+import netifaces as ni
+import random
+
 
 # Define the broker IP and the TCP port
 broker_ip = '192.168.122.48'
@@ -44,13 +47,17 @@ def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
     packet = fixed_header + bytes([remaining_length]) + var_header + payload
     return packet
 
+# Get the IP address of eth2 interface
+ni.ifaddresses('eth2')
+ip = ni.ifaddresses('eth2')[ni.AF_INET][0]['addr']
+
+si = ip  # Source IP address
 # Manually setting the values for our specific case
-si = "192.168.122.47"  # Source IP address
-sp = 12345             # Source port
+sp = 12345  # Source port, should be a random value
 di = broker_ip  # Destination IP address
-dp = 1883              # Destination port (standard MQTT port)
-cseq = 100             # Initial TCP sequence number
-debug = 30             # Debug level (e.g., 30 for WARNING)
+dp = broker_port              # Destination port (standard MQTT port)
+cseq = random.randint(0, 0xFFFFFFFF)  # Generate a random 32-bit sequence numberdebug = 30             # Debug level (e.g., 30 for WARNING)
+debug = 30
 return_code = 0        # Indicate successful initialization
 return_string = "Initialization successful"
 
@@ -124,42 +131,57 @@ mylog.info("ACK packet sent")
 # and the client has sent a RST .. we will miss that packet and will
 # continue, unaware of what is going on.
 
-# instead of DATA PACKET we have MQTT CONNECT
-'''
-    datapkt=ackpkt.copy()
-    datapkt[TCP].flags="PA"
-    datapkt = datapkt / Raw(load=text)
-    # the DATA packet should be acknowledged if everything goes well
-    # Thus, we can use sr() and check what we got back
-    pair, unans = sr(datapkt, verbose=scapy_verbose)
-    mylog.info("DATA packet sent")
-'''
+# Checks TCP connection
+
+datapkt=ackpkt.copy()
+datapkt[TCP].flags="PA"
+datapkt = datapkt / Raw(load=text)
+# the DATA packet should be acknowledged if everything goes well
+# Thus, we can use sr() and check what we got back
+pair, unans = sr(datapkt, verbose=scapy_verbose)
+mylog.info("DATA packet sent")
+
 mqtt_connect_packet = craft_mqtt_connect()
 mylog.info("Sending MQTT CONNECT packet")
 send(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq, ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_connect_packet), verbose=scapy_verbose)
 
 # Wait for CONNACK and parse - future implementation
-for i in range(1, num_messages + 1):
-
-    # MQTT PUBLISH with QoS 2
-    mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
-    mylog.info("Sending MQTT PUBLISH packet with QoS 2")
-    pubrec_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_publish_packet), verbose=scapy_verbose)
-
-    # Log sending PUBLISH and receiving PUBREC
-    mylog.info(f"Sent PUBLISH {i}, waiting for PUBREC...")
-    
-    if pubrec_pkt and Raw in pubrec_pkt and pubrec_pkt[Raw].load[0] == 0x50:  # 0x50 = PUBREC
-        
-        # Update seq and ack numbers based on response
-        cseq += len(mqtt_publish_packet)
-        synackpkt.seq = pubrec_pkt.seq + len(pubrec_pkt.load)
-        mylog.info(f"Received PUBREC for message {i}")
+connack_pkt = sniff(filter=f"tcp and src {di} and dst {si} and port {sp}", count=1, timeout=5)
+if connack_pkt and connack_pkt[0].haslayer(TCP) and connack_pkt[0].haslayer(Raw):
+    if connack_pkt[0][Raw].load[0] == 0x20: 
+        mylog.info("Received CONNACK packet")
     else:
-        mylog.error("No PUBREC received, or response malformed.")
+        mylog.error("No CONNACK received, or response malformed.")
+else:
+    mylog.error("No CONNACK received within timeout period.")
+time.sleep(1)
 
-# Placeholder for repeating the publish or gracefully closing the TCP connection
-# [... TCP connection teardown or repeat publish code ...]
+# After receiving the CONNACK packet
+connack_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_connack_packet), verbose=scapy_verbose)
+
+# Update seq and ack numbers based on CONNACK
+cseq += len(connack_pkt)
+synackpkt.seq = connack_pkt.seq + len(connack_pkt.load)
+
+#for i in range(1, num_messages + 1):
+
+# MQTT PUBLISH with QoS 2
+mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
+mylog.info("Sending MQTT PUBLISH packet with QoS 2")
+pubrec_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_publish_packet), verbose=scapy_verbose)
+
+# Log sending PUBLISH and receiving PUBREC
+mylog.info(f"Sent PUBLISH, waiting for PUBREC...")
+
+if pubrec_pkt and Raw in pubrec_pkt and pubrec_pkt[Raw].load[0] == 0x50:  # 0x50 = PUBREC
+    
+    # Update seq and ack numbers based on response
+    cseq += len(mqtt_publish_packet)
+    synackpkt.seq = pubrec_pkt.seq + len(pubrec_pkt.load)
+    mylog.info(f"Received PUBREC for message ")
+else:
+    mylog.error("No PUBREC received, or response malformed.")
+
 
 '''
 # We will never reach this place if the server sends nothing back ...:-(
