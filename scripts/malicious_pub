@@ -7,7 +7,7 @@ waits for PUBREC but intentionally omits PUBREL.
 We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 missing:  
     - implenment better log
-    - Parse connack
+    - Parse connack (OK)
 Based on scapy/normal_tcp_session.py
 '''
 
@@ -23,7 +23,7 @@ import random
 # Define the broker IP and the TCP port
 broker_ip = '192.168.122.48'
 broker_port = 1883
-num_messages = 11  # Number of MQTT messages to DoS flood the queue with
+num_messages = 1  # Number of MQTT messages to DoS flood the queue with
 
 # Functions for MQTT packet crafting
 def craft_mqtt_connect(client_id="ScapyClient"):
@@ -40,31 +40,33 @@ def craft_mqtt_connect(client_id="ScapyClient"):
 def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
     topic_length = struct.pack("!H", len(topic))
     packet_id_bytes = struct.pack("!H", packet_id)
-    fixed_header = b"\x3c"  # PUBLISH, DUP=0, QoS=2, RETAIN=0
+    fixed_header = b"\x34"  # PUBLISH, DUP=0, QoS=2, RETAIN=0 (0b0011 0 10 0)
     var_header = topic_length + topic.encode() + packet_id_bytes
     payload = message.encode()
-    remaining_length = len(var_header) + len(payload)
+    remaining_length = len(var_header) + len(payload) # what if bigger than 127?
     packet = fixed_header + bytes([remaining_length]) + var_header + payload
     return packet
 
-# Get the IP address of eth2 interface
+# Get the IP address of eth2 interface, the one we are using in the lab
+# can be automated to get the IP of the interface that is up
 ni.ifaddresses('eth2')
 ip = ni.ifaddresses('eth2')[ni.AF_INET][0]['addr']
 
-si = ip  # Source IP address
 # Manually setting the values for our specific case
-sp = 12345  # Source port, should be a random value
+
+si = ip  # Source IP address
+sp = random.randint(0, 0xFFFF)   # Source port, implemented random value due to binding error
 di = broker_ip  # Destination IP address
 dp = broker_port              # Destination port (standard MQTT port)
-cseq = random.randint(0, 0xFFFFFFFF)  # Generate a random 32-bit sequence numberdebug = 30             # Debug level (e.g., 30 for WARNING)
-debug = 30
+cseq = random.randint(0, 0xFFFFFFFF)  # Generate a random 32-bit sequence number
+debug = 10 # Debug level (e.g., 30 for WARNING)
 return_code = 0        # Indicate successful initialization
 return_string = "Initialization successful"
 
 # Our default logging is at WARNING level
 # 10: DEBUG, 20: INFO, 30: WARNING, 40:ERROR, 50: CRITICAL
 # Logging setup
-logging_level = debug  # Set logging level based on debug variable
+logging_level = debug 
 logging.basicConfig(stream=sys.stderr, level=logging_level)
 mylog = logging.getLogger("mainlogger")
 mylog.warning("Program starts")
@@ -114,7 +116,7 @@ if str(pair[0][1][TCP].flags)=="SA":
     mylog.info("SYN ACK packet received")
     synackpkt=pair[0][1]
 else:
-    mylog.critical("Response to the SYN Packet had the %s flags instead of SYN ACK\n===>You probably forgot to launch your server. By default it should be on s3.net3.local, port 2000\n\"nc -l 2000\"\n\nAborting", str(pair[0][1][TCP].flags))
+    mylog.critical("Response to the SYN Packet had the %s flags instead of SYN ACK", str(pair[0][1][TCP].flags))
     exit()
     
 # ACK PACKET
@@ -123,7 +125,7 @@ ackpkt[TCP].seq = ackpkt[TCP].seq + 1
 ackpkt[TCP].flags = "A"
 ackpkt[TCP].ack=synackpkt[TCP].seq + 1
 # normally, the server does not reply to the ACK
-# thus we use send() instead of sr() which would be waiting for ever
+# thus we use send() instead of sr() which would be waiting forever
 # (or for some timeout)
 send(ackpkt, verbose=scapy_verbose)
 mylog.info("ACK packet sent")
@@ -131,19 +133,41 @@ mylog.info("ACK packet sent")
 # and the client has sent a RST .. we will miss that packet and will
 # continue, unaware of what is going on.
 
-# Checks TCP connection
+# Checks TCP connection. @TODO: Would this be a problem on 1883?
 
 datapkt=ackpkt.copy()
 datapkt[TCP].flags="PA"
+text = "hello world"
 datapkt = datapkt / Raw(load=text)
 # the DATA packet should be acknowledged if everything goes well
 # Thus, we can use sr() and check what we got back
 pair, unans = sr(datapkt, verbose=scapy_verbose)
 mylog.info("DATA packet sent")
 
+# Extracting the sequence number and SYN flag from the reply
+if len(pair) != 1:
+    mylog.critical("We have received %s answers to DATA packet instead of 1.\nAborting", len(pair))
+    exit()
+if str(pair[0][1][TCP].flags)=="A":
+    mylog.info("ACK packet received")
+    dataackpkt=pair[0][1]
+    expected_ack=datapkt[TCP].seq + len(datapkt[TCP].payload)
+    if expected_ack != dataackpkt[TCP].ack:
+        mylog.critical("Wrong ACK value from the server: got %s instead of the expected %s value. \nAborting", dataackpkt[TCP].ack, expected_ack)
+        exit()
+else:
+    mylog.critical("Response to the DATA Packet had the %s flags instead of ACK \n===>You probably forgot to prevent your client from emitting a RST packet.\n\"iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP\"\n\nAborting", str(pair[0][1][TCP].flags))
+    exit()
+mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
+
+# Extracting the sequence number and SYN flag from the reply
+next_seq = dataackpkt[TCP].seq + 1
+next_syn = dataackpkt[TCP].flags.S
+
+# MQTT part starts, @TODO: STOPPED HERE
 mqtt_connect_packet = craft_mqtt_connect()
 mylog.info("Sending MQTT CONNECT packet")
-send(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq, ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_connect_packet), verbose=scapy_verbose)
+send(IP(dst=di)/TCP(sport=sp, dport=dp, seq=next_seq, ack=next_syn, flags='PA')/Raw(load=mqtt_connect_packet), verbose=scapy_verbose)
 
 # Wait for CONNACK and parse - future implementation
 connack_pkt = sniff(filter=f"tcp and src {di} and dst {si} and port {sp}", count=1, timeout=5)
