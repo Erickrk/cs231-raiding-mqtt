@@ -15,6 +15,7 @@ import logging
 import sys
 #import lib_scapy
 from scapy.all import *
+from scapy.contrib.mqtt import *
 from scapy.layers.inet import IP, TCP
 import netifaces as ni
 import random
@@ -27,25 +28,45 @@ num_messages = 1  # Number of MQTT messages to DoS flood the queue with
 
 # Functions for MQTT packet crafting
 def craft_mqtt_connect(client_id="ScapyClient"):
-    proto_name = b"\x00\x04MQTT"
-    proto_level = b"\x04"
-    connect_flags = b"\x02"  # Clean session
-    keep_alive = b"\x00\x3c"  # 60 seconds
-    client_id_length = struct.pack("!H", len(client_id))
-    payload = client_id_length + client_id.encode()
-    remaining_length = len(proto_name) + 1 + 1 + 2 + len(payload)
-    packet = b"\x10" + bytes([remaining_length]) + proto_name + proto_level + connect_flags + keep_alive + payload
-    return packet
+    # proto_name = b"\x00\x04MQTT"
+    # proto_level = b"\x04"
+    # connect_flags = b"\x02"  # Clean session
+    # keep_alive = b"\x00\x3c"  # 60 seconds
+    # client_id_length = struct.pack("!H", len(client_id))
+    # payload = client_id_length + client_id.encode()
+    # remaining_length = len(proto_name) + 1 + 1 + 2 + len(payload)
+    # packet = b"\x10" + bytes([remaining_length]) + proto_name + proto_level + connect_flags + keep_alive + payload
+    # Protocol Name: "MQTT"
+    proto_name = "MQTT"
+    # Protocol Level: 4 (MQTT 3.1.1)
+    proto_level = 4
+    # Connect Flags: 2 (Clean Session)
+    connect_flags = 2
+    # Keep Alive: 60 seconds
+    keep_alive = 60
+
+    return scapy.contrib.mqtt.MQTTConnect(
+        proto_name=proto_name,
+        proto_level=proto_level,
+        connect_flags=connect_flags,
+        keep_alive=keep_alive,
+        client_id=client_id
+    )
+
 
 def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
-    topic_length = struct.pack("!H", len(topic))
-    packet_id_bytes = struct.pack("!H", packet_id)
-    fixed_header = b"\x34"  # PUBLISH, DUP=0, QoS=2, RETAIN=0 (0b0011 0 10 0)
-    var_header = topic_length + topic.encode() + packet_id_bytes
-    payload = message.encode()
-    remaining_length = len(var_header) + len(payload) # what if bigger than 127?
-    packet = fixed_header + bytes([remaining_length]) + var_header + payload
-    return packet
+
+    # topic_length = struct.pack("!H", len(topic))
+    # packet_id_bytes = struct.pack("!H", packet_id)
+    # fixed_header = b"\x34"  # PUBLISH, DUP=0, QoS=2, RETAIN=0 (0b0011 0 10 0)
+    # var_header = topic_length + topic.encode() + packet_id_bytes
+    # payload = message.encode()
+    # remaining_length = len(var_header) + len(payload) # what if bigger than 127?
+    # packet = fixed_header + bytes([remaining_length]) + var_header + payload
+    return scapy.contrib.mqtt.MQTTPublish(topic=topic,
+                                          QOS=qos,
+                                          id=packet_id,
+                                          value=message)
 
 # Get the IP address of eth2 interface, the one we are using in the lab
 # can be automated to get the IP of the interface that is up
@@ -121,7 +142,7 @@ else:
     
 # ACK PACKET
 ackpkt = synpkt.copy()
-ackpkt[TCP].seq = ackpkt[TCP].seq + 1
+ackpkt[TCP].seq = ackpkt[TCP].seq + 1 # @todo: why +1?
 ackpkt[TCP].flags = "A"
 ackpkt[TCP].ack=synackpkt[TCP].seq + 1
 # normally, the server does not reply to the ACK
@@ -160,48 +181,42 @@ else:
     exit()
 mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
 
-# Extracting the sequence number and SYN flag from the reply
-next_seq = dataackpkt[TCP].seq + 1
-next_syn = dataackpkt[TCP].flags.S
+# Extracting the sequence number if everything went well
+# @TODO: look here
+#cseq = expected_ack
 
-# MQTT part starts, @TODO: STOPPED HERE
+# MQTT part starts
 mqtt_connect_packet = craft_mqtt_connect()
 mylog.info("Sending MQTT CONNECT packet")
-send(IP(dst=di)/TCP(sport=sp, dport=dp, seq=next_seq, ack=next_syn, flags='PA')/Raw(load=mqtt_connect_packet), verbose=scapy_verbose)
 
-# Wait for CONNACK and parse - future implementation
-connack_pkt = sniff(filter=f"tcp and src {di} and dst {si} and port {sp}", count=1, timeout=5)
-if connack_pkt and connack_pkt[0].haslayer(TCP) and connack_pkt[0].haslayer(Raw):
-    if connack_pkt[0][Raw].load[0] == 0x20: 
-        mylog.info("Received CONNACK packet")
-    else:
-        mylog.error("No CONNACK received, or response malformed.")
-else:
-    mylog.error("No CONNACK received within timeout period.")
-time.sleep(1)
-
-# After receiving the CONNACK packet
-connack_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_connack_packet), verbose=scapy_verbose)
+# Sends CONNECT and checks CONNACK
+connack_pkt = sr1(IP(mqtt_connect_packet), verbose=scapy_verbose)
+# # TODO: is this useful?
+# connack_pkt = sniff(filter=f"tcp and src {di} and dst {si} and port {sp}", count=1, timeout=5)
+# if connack_pkt and connack_pkt[0].haslayer(TCP) and connack_pkt[0].haslayer(Raw):
+#     if connack_pkt[0][Raw].load[0] == 0x20:
+#         mylog.info("Received CONNACK packet")
+#     else:
+#         mylog.error("No CONNACK received, or response malformed.")
+# else:
+#     mylog.error("No CONNACK received within timeout period.")
+# time.sleep(1)
 
 # Update seq and ack numbers based on CONNACK
-cseq += len(connack_pkt)
-synackpkt.seq = connack_pkt.seq + len(connack_pkt.load)
+#cseq += len(connack_pkt[Raw].load)
 
 #for i in range(1, num_messages + 1):
 
 # MQTT PUBLISH with QoS 2
 mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
 mylog.info("Sending MQTT PUBLISH packet with QoS 2")
-pubrec_pkt = sr1(IP(dst=di)/TCP(sport=sp, dport=dp, seq=cseq+len(mqtt_connect_packet), ack=synackpkt.seq + 1, flags='PA')/Raw(load=mqtt_publish_packet), verbose=scapy_verbose)
+pubrec_pkt = sr1(IP(mqtt_publish_packet), verbose=scapy_verbose)
 
+# cseq += len(mqtt_publish_packet)
 # Log sending PUBLISH and receiving PUBREC
 mylog.info(f"Sent PUBLISH, waiting for PUBREC...")
 
 if pubrec_pkt and Raw in pubrec_pkt and pubrec_pkt[Raw].load[0] == 0x50:  # 0x50 = PUBREC
-    
-    # Update seq and ack numbers based on response
-    cseq += len(mqtt_publish_packet)
-    synackpkt.seq = pubrec_pkt.seq + len(pubrec_pkt.load)
     mylog.info(f"Received PUBREC for message ")
 else:
     mylog.error("No PUBREC received, or response malformed.")
@@ -225,11 +240,11 @@ else:
 mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
 '''
 # FIN/ACK PACKET
-finpkt = datapkt.copy()
-finpkt[TCP].flags="FA"
-finpkt[TCP].seq=finpkt[TCP].seq + len(datapkt[TCP].payload)
+finpkt = pubrec_pkt.copy()
+finpkt[TCP].flags = "FA"
+finpkt[TCP].seq = cseq + len(finpkt[TCP].payload)
 finpkt[TCP].remove_payload()
-serverfinpkt=sr1(finpkt, verbose=scapy_verbose)
+serverfinpkt = sr1(finpkt, verbose=scapy_verbose)
 
 # We could check here that we did get what we were expecting from the server
 # Instead of blinding trusting whatever packet has been received
