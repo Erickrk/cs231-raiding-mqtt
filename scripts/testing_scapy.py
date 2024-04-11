@@ -8,10 +8,10 @@ broker_port = 1883
 import random
 
 # MQTT Connect Packet for version 3.1.1
-def create_connect_packet(client_id="ScapyClient"):
+def create_connect_packet(client_id="C1"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 4  # 4 indicates MQTT 3.1.1
+    proto_level = 5  # 4 indicates MQTT 3.1.1
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
