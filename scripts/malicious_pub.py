@@ -69,8 +69,8 @@ def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
 
 # Get the IP address of eth2 interface, the one we are using in the lab
 # can be automated to get the IP of the interface that is up
-ni.ifaddresses('eth0')
-ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
+ni.ifaddresses('eth2')
+ip = ni.ifaddresses('eth2')[ni.AF_INET][0]['addr']
 
 # Manually setting the values for our specific case
 
