@@ -9,11 +9,52 @@ import random
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="ScapyClient"):
-    pkt = MQTT()/MQTTConnect(protolevel=4)  # 4 stands for MQTT 3.1.1
-    pkt.protoname = "MQTT"  # Setting the protocol name
-    pkt.clientId = client_id
-    pkt.length = len(client_id)  # Adjusting length field based on client ID
-    return pkt
+    # Protocol Name and Level for MQTT 3.1.1
+    proto_name = "MQTT"
+    proto_level = 4  # 4 indicates MQTT 3.1.1
+
+    # Connect Flags
+    # Assuming Clean Session, and No Will, Username, or Password
+    username_flag = 0
+    password_flag = 0
+    will_retain = 0
+    will_qos = 0
+    will_flag = 0
+    clean_session = 1
+    # Calculating the Connect Flags byte
+    connect_flags = (username_flag << 7 | password_flag << 6 |
+                     will_retain << 5 | will_qos << 3 |
+                     will_flag << 2 | clean_session << 1)
+
+    # Keep Alive timer (in seconds)
+    keep_alive = 60
+
+    # Client ID
+    # Length of the Client ID followed by the Client ID string
+    client_id_length = len(client_id)
+
+    # Assembling the Variable Header
+    variable_header = struct.pack("!H6sBBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
+                                  keep_alive)
+
+    # Payload
+    payload = struct.pack("!H", client_id_length) + client_id.encode()
+
+    # Fixed Header for CONNECT
+    # MQTT Packet Type for CONNECT is 1
+    packet_type = 1 << 4  # Shifting 4 bits left to position the packet type
+    remaining_length = len(variable_header) + len(payload)  # Remaining Length
+
+    # Remaining Length Encoding (can be 1-4 bytes, here simplified to 1 byte for lengths < 128)
+    if remaining_length > 127:
+        raise ValueError("Packet too long")
+
+    fixed_header = struct.pack("!BB", packet_type, remaining_length)
+
+    # Final MQTT CONNECT Packet
+    connect_packet = fixed_header + variable_header + payload
+
+    return Raw(load=connect_packet)
 
 # MQTT Publish Packet
 def create_publish_packet(topic="test/topic", message="Hello MQTT"):
