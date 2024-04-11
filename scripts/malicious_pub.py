@@ -186,7 +186,7 @@ mqtt_connect_packet = craft_mqtt_connect()
 mylog.info("Sending MQTT CONNECT packet")
 
 # Sends CONNECT and checks CONNACK
-connack_pkt = sr1(IP(mqtt_connect_packet), verbose=scapy_verbose)
+connack_pkt = sr1(mqtt_connect_packet, verbose=scapy_verbose)
 # # TODO: is this useful?
 # connack_pkt = sniff(filter=f"tcp and src {di} and dst {si} and port {sp}", count=1, timeout=5)
 # if connack_pkt and connack_pkt[0].haslayer(TCP) and connack_pkt[0].haslayer(Raw):
