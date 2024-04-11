@@ -11,7 +11,7 @@ import random
 def create_connect_packet(client_id="c1"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = "5"  # 4 indicates MQTT 3.1.1
+    proto_level = 1 # 4 indicates MQTT 3.1.1
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
@@ -34,7 +34,7 @@ def create_connect_packet(client_id="c1"):
     client_id_length = len(client_id)
 
     # Assembling the Variable Header
-    variable_header = struct.pack("!H6sBBH", len(proto_name), proto_name.encode(), proto_level.encode(), connect_flags,
+    variable_header = struct.pack("!H6sBBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
                                   keep_alive)
 
     # Payload
