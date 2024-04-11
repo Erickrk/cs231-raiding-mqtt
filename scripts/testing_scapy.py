@@ -1,6 +1,6 @@
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
-# Import the MQTT classes from your MQTT Scapy extension file here
+from scapy.contrib.mqtt import *
 
 # Set the target broker details
 broker_ip = "192.168.122.48"
