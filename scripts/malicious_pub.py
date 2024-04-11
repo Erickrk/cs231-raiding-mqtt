@@ -39,17 +39,14 @@ def craft_mqtt_connect(client_id="ScapyClient"):
     # Protocol Name: "MQTT"
     #proto_name = "MQTT"
     # Protocol Level: 4 (MQTT 3.1.1)
-    proto_level = 4
+    #proto_level = 4
     # Connect Flags: 2 (Clean Session)
-    connect_flags = 2
+    #connect_flags = 2
     # Keep Alive: 60 seconds
     keep_alive = 60
 
     return scapy.contrib.mqtt.MQTTConnect(
-        proto_level=proto_level,
-        connect_flags=connect_flags,
-        keep_alive=keep_alive,
-        client_id=client_id
+        klive=keep_alive,
     )
 
 
