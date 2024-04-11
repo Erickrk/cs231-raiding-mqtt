@@ -11,7 +11,7 @@ import random
 def create_connect_packet(client_id="c1"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 100  # 4 indicates MQTT 3.1.1, but we need to shift this
+    proto_level = 5  # 4 indicates MQTT 3.1.1, but we need to shift this
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
@@ -54,7 +54,7 @@ def create_connect_packet(client_id="c1"):
 
     # Final MQTT CONNECT Packet
     connect_packet = fixed_header + variable_header + payload
-
+    connect_packet.show()
     return Raw(load=connect_packet)
 
 # MQTT Publish Packet
