@@ -35,7 +35,14 @@ def create_connect_packet(client_id="c1"):
     client_id_length = len(client_id)
 
     # Assembling the Variable Header
-    variable_header = struct.pack("!H6sBBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
+    ''' @TODO: fix this comment
+    !: This specifies that the data should be packed in network (big-endian) byte order.
+    H: This stands for an unsigned short integer, which is 2 bytes. It's used for the length of the protocol name.
+    6s: This stands for a string of 6 characters. It's used for the protocol name itself, which is "MQTT".
+    B: This stands for an unsigned char, which is 1 byte. It's used twice, first for the protocol level and then for the connect flags.
+    H: This is used again for the length of the client ID.
+    '''
+    variable_header = struct.pack("!H6sHBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
                                   client_id_length)
 
     # Payload
@@ -88,6 +95,7 @@ topic = "test/topic"
 message = "Hello from Scapy"
 publish_pkt = create_publish_packet(topic, message)
 publish_pkt.show()
+
 publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/publish_pkt)
 
