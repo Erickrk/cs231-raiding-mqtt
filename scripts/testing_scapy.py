@@ -43,10 +43,10 @@ def create_connect_packet(client_id="c1"):
     H: This is used again for the length of the client ID.
     '''
     variable_header = struct.pack("!H6sHBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
-                                  client_id_length)
+                                  keep_alive)
 
     # Payload
-    payload = struct.pack("!H", keep_alive) + client_id.encode()
+    payload = struct.pack("!H", client_id_length) + client_id.encode()
 
     # Fixed Header for CONNECT
     # MQTT Packet Type for CONNECT is 1
