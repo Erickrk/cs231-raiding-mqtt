@@ -11,7 +11,7 @@ import random
 def create_connect_packet(client_id="c1"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 5  # 4 indicates MQTT 3.1.1, but we need to shift this
+    proto_level = 1 << 2  # 4 indicates MQTT 3.1.1, but we need to shift this
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
@@ -29,6 +29,8 @@ def create_connect_packet(client_id="c1"):
 
     # Keep Alive timer (in seconds)
     keep_alive = 60
+    keep_alive_high_byte = (keep_alive >> 8) & 0xFF  # Shift right by 8 bits to get the high byte
+    keep_alive_low_byte = keep_alive & 0xFF  # Mask with 0xFF to get the low byte
 
     # Client ID
     # Length of the Client ID followed by the Client ID string
@@ -42,8 +44,8 @@ def create_connect_packet(client_id="c1"):
     B: This stands for an unsigned char, which is 1 byte. It's used twice, first for the protocol level and then for the connect flags.
     H: This is used again for the length of the client ID.
     '''
-    variable_header = struct.pack("!H6sHBH", len(proto_name), proto_name.encode(), proto_level, connect_flags,
-                                  keep_alive)
+    variable_header = struct.pack("!H6sHBBB", len(proto_name), proto_name.encode(), proto_level, connect_flags,
+                                  keep_alive_high_byte, keep_alive_low_byte)
 
     # Payload
     payload = struct.pack("!H", client_id_length) + client_id.encode()
