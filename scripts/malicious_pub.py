@@ -152,30 +152,30 @@ mylog.info("ACK packet sent")
 
 # Checks TCP connection. @TODO: Would this be a problem on 1883?
 
-datapkt=ackpkt.copy()
-datapkt[TCP].flags="PA"
-text = "hello world"
-datapkt = datapkt / Raw(load=text)
-# the DATA packet should be acknowledged if everything goes well
-# Thus, we can use sr() and check what we got back
-pair, unans = sr(datapkt, verbose=scapy_verbose)
-mylog.info("DATA packet sent")
-
-# Extracting the sequence number and SYN flag from the reply
-if len(pair) != 1:
-    mylog.critical("We have received %s answers to DATA packet instead of 1.\nAborting", len(pair))
-    exit()
-if str(pair[0][1][TCP].flags)=="A":
-    mylog.info("ACK packet received")
-    dataackpkt=pair[0][1]
-    expected_ack=datapkt[TCP].seq + len(datapkt[TCP].payload)
-    if expected_ack != dataackpkt[TCP].ack:
-        mylog.critical("Wrong ACK value from the server: got %s instead of the expected %s value. \nAborting", dataackpkt[TCP].ack, expected_ack)
-        exit()
-else:
-    mylog.critical("Response to the DATA Packet had the %s flags instead of ACK \n===>You probably forgot to prevent your client from emitting a RST packet.\n\"iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP\"\n\nAborting", str(pair[0][1][TCP].flags))
-    exit()
-mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
+# datapkt=ackpkt.copy()
+# datapkt[TCP].flags="PA"
+# text = "hello world"
+# datapkt = datapkt / Raw(load=text)
+# # the DATA packet should be acknowledged if everything goes well
+# # Thus, we can use sr() and check what we got back
+# pair, unans = sr(datapkt, verbose=scapy_verbose)
+# mylog.info("DATA packet sent")
+#
+# # Extracting the sequence number and SYN flag from the reply
+# if len(pair) != 1:
+#     mylog.critical("We have received %s answers to DATA packet instead of 1.\nAborting", len(pair))
+#     exit()
+# if str(pair[0][1][TCP].flags)=="A":
+#     mylog.info("ACK packet received")
+#     dataackpkt=pair[0][1]
+#     expected_ack=datapkt[TCP].seq + len(datapkt[TCP].payload)
+#     if expected_ack != dataackpkt[TCP].ack:
+#         mylog.critical("Wrong ACK value from the server: got %s instead of the expected %s value. \nAborting", dataackpkt[TCP].ack, expected_ack)
+#         exit()
+# else:
+#     mylog.critical("Response to the DATA Packet had the %s flags instead of ACK \n===>You probably forgot to prevent your client from emitting a RST packet.\n\"iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP\"\n\nAborting", str(pair[0][1][TCP].flags))
+#     exit()
+# mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
 
 # Extracting the sequence number if everything went well
 # @TODO: look here
@@ -235,20 +235,20 @@ else:
     exit()
 mylog.info("data packet sent with %s bytes: \'%s\'", len(text), text)
 '''
-# FIN/ACK PACKET
-finpkt = pubrec_pkt.copy()
-finpkt[TCP].flags = "FA"
-finpkt[TCP].seq = cseq + len(finpkt[TCP].payload)
-finpkt[TCP].remove_payload()
-serverfinpkt = sr1(finpkt, verbose=scapy_verbose)
-
-# We could check here that we did get what we were expecting from the server
-# Instead of blinding trusting whatever packet has been received
-# ACK PACKET 
-finfinpkt=finpkt.copy()
-finfinpkt[TCP].flags="A"
-finfinpkt[TCP].seq = finfinpkt[TCP].seq +1
-finfinpkt[TCP].ack = finfinpkt[TCP].ack +1
-send(finfinpkt, verbose=scapy_verbose)
-mylog.warning("Program Ends successfully")
+# # FIN/ACK PACKET
+# finpkt = pubrec_pkt.copy()
+# finpkt[TCP].flags = "FA"
+# finpkt[TCP].seq = cseq + len(finpkt[TCP].payload)
+# finpkt[TCP].remove_payload()
+# serverfinpkt = sr1(finpkt, verbose=scapy_verbose)
+#
+# # We could check here that we did get what we were expecting from the server
+# # Instead of blinding trusting whatever packet has been received
+# # ACK PACKET
+# finfinpkt=finpkt.copy()
+# finfinpkt[TCP].flags="A"
+# finfinpkt[TCP].seq = finfinpkt[TCP].seq +1
+# finfinpkt[TCP].ack = finfinpkt[TCP].ack +1
+# send(finfinpkt, verbose=scapy_verbose)
+# mylog.warning("Program Ends successfully")
 
