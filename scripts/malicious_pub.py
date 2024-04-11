@@ -37,7 +37,7 @@ def craft_mqtt_connect(client_id="ScapyClient"):
     # remaining_length = len(proto_name) + 1 + 1 + 2 + len(payload)
     # packet = b"\x10" + bytes([remaining_length]) + proto_name + proto_level + connect_flags + keep_alive + payload
     # Protocol Name: "MQTT"
-    proto_name = "MQTT"
+    #proto_name = "MQTT"
     # Protocol Level: 4 (MQTT 3.1.1)
     proto_level = 4
     # Connect Flags: 2 (Clean Session)
@@ -46,7 +46,6 @@ def craft_mqtt_connect(client_id="ScapyClient"):
     keep_alive = 60
 
     return scapy.contrib.mqtt.MQTTConnect(
-        proto_name=proto_name,
         proto_level=proto_level,
         connect_flags=connect_flags,
         keep_alive=keep_alive,
@@ -70,8 +69,8 @@ def craft_mqtt_publish(topic, message, packet_id=1, qos=2):
 
 # Get the IP address of eth2 interface, the one we are using in the lab
 # can be automated to get the IP of the interface that is up
-ni.ifaddresses('eth2')
-ip = ni.ifaddresses('eth2')[ni.AF_INET][0]['addr']
+ni.ifaddresses('eth0')
+ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
 
 # Manually setting the values for our specific case
 
