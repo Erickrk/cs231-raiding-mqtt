@@ -44,7 +44,7 @@ def create_connect_packet(client_id="c1"):
     B: This stands for an unsigned char, which is 1 byte. It's used twice, first for the protocol level and then for the connect flags.
     H: This is used again for the length of the client ID.
     '''
-    variable_header = struct.pack("!H6sHBBB", len(proto_name), proto_name.encode(), proto_level, connect_flags,
+    variable_header = struct.pack("!H4sHBBB", len(proto_name), proto_name.encode(), proto_level, connect_flags,
                                   keep_alive_high_byte, keep_alive_low_byte)
 
     # Payload
