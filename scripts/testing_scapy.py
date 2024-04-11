@@ -3,8 +3,8 @@ from scapy.layers.inet import IP, TCP
 # Import the MQTT classes from your MQTT Scapy extension file here
 
 # Set the target broker details
-broker_ip = "your_broker_ip"
-broker_port = '192.168.122.48'
+broker_ip = "192.168.122.48"
+broker_port = 1883
 import random
 
 # Create an IP packet destined for the broker
