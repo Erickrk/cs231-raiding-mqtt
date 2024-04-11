@@ -54,7 +54,6 @@ def create_connect_packet(client_id="c1"):
 
     # Final MQTT CONNECT Packet
     connect_packet = fixed_header + variable_header + payload
-    connect_packet.show()
     return Raw(load=connect_packet)
 
 # MQTT Publish Packet
@@ -88,6 +87,7 @@ time.sleep(2)
 topic = "test/topic"
 message = "Hello from Scapy"
 publish_pkt = create_publish_packet(topic, message)
+publish_pkt.show()
 publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/publish_pkt)
 
