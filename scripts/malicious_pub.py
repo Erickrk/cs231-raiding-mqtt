@@ -206,7 +206,7 @@ connack_pkt = sr1(mqtt_connect_packet, verbose=scapy_verbose)
 # MQTT PUBLISH with QoS 2
 mqtt_publish_packet = craft_mqtt_publish("test/topic", "Test QoS 2 message")
 mylog.info("Sending MQTT PUBLISH packet with QoS 2")
-pubrec_pkt = sr1(IP(mqtt_publish_packet), verbose=scapy_verbose)
+pubrec_pkt = sr1(mqtt_publish_packet, verbose=scapy_verbose)
 
 # cseq += len(mqtt_publish_packet)
 # Log sending PUBLISH and receiving PUBREC
