@@ -1,3 +1,9 @@
+'''
+# subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
+# send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
+
+'''
+
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.contrib.mqtt import *
@@ -68,7 +74,7 @@ def create_connect_packet(client_id="cm"):
 # MQTT Publish Packet
 def create_publish_packet(topic="test/topic", message="Hello MQTT"):
     pkt = MQTT()/MQTTPublish(topic=topic, value=message)
-    pkt.len = len(topic) + len(message) + 2  # Adjust for the correct length
+    pkt.len = len(topic) + len(message) + 2 
     return pkt
 
 # Create an IP packet destined for the broker
@@ -96,14 +102,13 @@ time.sleep(2)
 topic = "sensor/data"
 message = "Hello from Scapy"
 publish_pkt = create_publish_packet(topic, message)
-publish_pkt.show()
+# publish_pkt.show()
 
-publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
-send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/publish_pkt)
+for _ in range(200):
+    publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
+    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/publish_pkt)
+    time.sleep(0.001)
 
-# If you want to subscribe instead of publish, use MQTTSubscribe
-# subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
-# send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
+# Implement session closing
 
-# Remember to properly close the TCP connection when done
-# This is an example and does not handle MQTT session closure or TCP teardown sequences
+
