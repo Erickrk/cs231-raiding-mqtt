@@ -100,7 +100,7 @@ time.sleep(2)
 
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
-MAX_SIZE = 256 * 1024  # 256 KB
+MAX_SIZE = 240 * 1024  # 256 KB
 message = "A" * MAX_SIZE
 
 publish_pkt = create_publish_packet(topic, message)
