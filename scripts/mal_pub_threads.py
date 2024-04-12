@@ -1,13 +1,8 @@
-'''
-# subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
-# send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
-
-'''
-
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.contrib.mqtt import *
 import random
+import threading
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
@@ -77,47 +72,39 @@ def create_publish_packet(topic="test/topic", message="Hello MQTT"):
     # pkt.len = len(topic) + len(message) + 2 
     return pkt
 
-# Create an IP packet destined for the broker
-ip = IP(dst=broker_ip)
 
-# Generate a random source port for our end of the connection
-src_port = random.randint(0, 0xFFFF)   # Source port, implemented random value due to binding error
+def mqtt_publish(src_port):
+    # Establish a TCP connection (SYN, SYN+ACK, ACK)
+    syn = TCP(sport=src_port, dport=broker_port, flags='S', seq=RandInt())
+    syn_ack = sr1(ip/syn)
+    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=syn_ack.ack, ack=syn_ack.seq + 1)
+    send(ip/ack)
 
+    # Now that the TCP connection is established, we can send MQTT packets
+    # Craft an MQTT CONNECT packet
+    connect_pkt = create_connect_packet()
+    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
-# Establish a TCP connection (SYN, SYN+ACK, ACK)
-syn = TCP(sport=src_port, dport=broker_port, flags='S', seq=RandInt())
-syn_ack = sr1(ip/syn)
-ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=syn_ack.ack, ack=syn_ack.seq + 1)
-send(ip/ack)
+    # Wait a bit for the broker to process our connection
+    time.sleep(2)
 
-# Now that the TCP connection is established, we can send MQTT packets
-# Craft an MQTT CONNECT packet
-connect_pkt = create_connect_packet()
-send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
+    # Craft an MQTT PUBLISH packet to send a message
+    topic = "sensor/data"
+    MAX_SIZE = 60 * 1024  # 60 KB
+    message = "A" * MAX_SIZE
+    publish_pkt = create_publish_packet(topic=topic, message="message")
+    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/publish_pkt)
 
-# Wait a bit for the broker to process our connection
-time.sleep(2)
+# Generate a list of random source ports
+src_ports = [random.randint(0, 0xFFFF) for _ in range(10)]  # Adjust the range as needed
 
-# Craft an MQTT PUBLISH packet to send a message
-topic = "sensor/data"
-MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * MAX_SIZE
+# Start a thread for each source port
+threads = []
+for src_port in src_ports:
+    t = threading.Thread(target=mqtt_publish, args=(src_port,))
+    t.start()
+    threads.append(t)
 
-publish_pkt = create_publish_packet(topic, message)
-# publish_pkt.show()
-
-seq = ack.seq + len(connect_pkt)
-for i in range(number_packets):
-    message_id = i + 1  # Generate a unique message ID for each message
-    publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
-    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
-    seq += len(publish_pkt)
-    #time.sleep(0.001)
-
-# Craft an MQTT DISCONNECT packet to close the session
-disconnect_pkt = MQTT()/MQTTDisconnect()
-send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
-
-# Implement session closing
-
-
+# Wait for all threads to finish
+for t in threads:
+    t.join()
