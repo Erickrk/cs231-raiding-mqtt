@@ -17,20 +17,20 @@ number_packets = 1
 def create_connect_packet(client_id="cm"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 4  # 4 indicates MQTT 3.1.1, but we need to shift this
+    proto_level = 5  # 4 indicates MQTT 3.1.1, but we need to shift this
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
     username_flag = 0
     password_flag = 0
     will_retain = 0
-    qos_level = 2
+    will_qos = 0
     will_flag = 0
     clean_session = 0
     reserved = 0
     # Calculating the Connect Flags byte
     connect_flags = (username_flag << 7 | password_flag << 6 |
-                     will_retain << 5 | qos_level << 3 |
+                     will_retain << 5 | will_qos << 3 |
                      will_flag << 2 | clean_session << 1 | reserved)
 
     # Keep Alive timer (in seconds)
