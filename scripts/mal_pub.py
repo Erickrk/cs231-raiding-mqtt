@@ -11,13 +11,13 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets = 1
+number_packets = 100
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 4  # 4 indicates MQTT 3.1.1, but we need to shift this
+    proto_level = 4  # 4 indicates MQTT 3.1.1
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
@@ -106,7 +106,7 @@ publish_pkt = create_publish_packet(topic, message)
 
 seq = ack.seq + len(connect_pkt)
 for i in range(number_packets):
-    publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message)
+    publish_pkt = MQTT(QOS=0)/MQTTPublish(topic=topic, value=message)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt)
     time.sleep(0.001)
