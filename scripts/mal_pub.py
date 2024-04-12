@@ -96,7 +96,7 @@ connect_pkt = create_connect_packet()
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
 # Wait a bit for the broker to process our connection
-time.sleep(200)
+time.sleep(2)
 
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
@@ -105,7 +105,7 @@ publish_pkt = create_publish_packet(topic, message)
 # publish_pkt.show()
 
 seq = ack.seq + len(connect_pkt)
-for i in range(2):
+for i in range(200):
     publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt)
