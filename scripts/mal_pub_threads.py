@@ -9,7 +9,7 @@ broker_port = 1883
 number_packets = 20000
 
 # MQTT Connect Packet for version 3.1.1
-def create_connect_packet(client_id="cm"):
+def create_connect_packet(client_id="".join(random.choices(string.ascii_uppercase + string.digits, k=2))):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
     proto_level = 4  # 4 indicates MQTT 3.1.1
