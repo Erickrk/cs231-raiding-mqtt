@@ -96,7 +96,7 @@ connect_pkt = create_connect_packet()
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
 # Wait a bit for the broker to process our connection
-time.sleep(2)
+time.sleep(200)
 
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
