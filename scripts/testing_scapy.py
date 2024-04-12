@@ -8,7 +8,7 @@ broker_port = 1883
 import random
 
 # MQTT Connect Packet for version 3.1.1
-def create_connect_packet(client_id="c1"):
+def create_connect_packet(client_id="cm"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
     proto_level = 4  # 4 indicates MQTT 3.1.1, but we need to shift this
@@ -93,7 +93,7 @@ send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.
 time.sleep(2)
 
 # Craft an MQTT PUBLISH packet to send a message
-topic = "test/topic"
+topic = "sensor/data"
 message = "Hello from Scapy"
 publish_pkt = create_publish_packet(topic, message)
 publish_pkt.show()
