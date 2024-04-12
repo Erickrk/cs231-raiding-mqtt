@@ -106,7 +106,7 @@ publish_pkt = create_publish_packet(topic, message)
 
 seq = ack.seq + len(connect_pkt)
 for i in range(number_packets):
-    publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
+    publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt)
     time.sleep(0.001)
