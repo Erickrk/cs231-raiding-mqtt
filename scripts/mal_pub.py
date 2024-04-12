@@ -104,11 +104,16 @@ message = "Hello from Scapy"
 publish_pkt = create_publish_packet(topic, message)
 # publish_pkt.show()
 
+seq = ack.seq + len(connect_pkt)
 for i in range(2):
     publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
-    seq = seq + len(connect_pkt) *  i
+    seq += len(publish_pkt)
     time.sleep(0.001)
+
+# Craft an MQTT DISCONNECT packet to close the session
+disconnect_pkt = MQTT()/MQTTDisconnect()
+send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
 
 # Implement session closing
 
