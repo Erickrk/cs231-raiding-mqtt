@@ -17,7 +17,7 @@ number_packets = 1
 def create_connect_packet(client_id="cm"):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
-    proto_level = 5  # 4 indicates MQTT 3.1.1, but we need to shift this
+    proto_level = 4  # 4 indicates MQTT 3.1.1, but we need to shift this
 
     # Connect Flags
     # Assuming Clean Session, and No Will, Username, or Password
