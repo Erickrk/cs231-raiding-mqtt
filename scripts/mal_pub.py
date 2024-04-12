@@ -7,11 +7,11 @@
 from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.contrib.mqtt import *
+import random
 
-# Set the target broker details
 broker_ip = "192.168.122.48"
 broker_port = 1883
-import random
+number_packets = 1
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
@@ -24,13 +24,13 @@ def create_connect_packet(client_id="cm"):
     username_flag = 0
     password_flag = 0
     will_retain = 0
-    will_qos = 0
+    qos_level = 2
     will_flag = 0
     clean_session = 0
     reserved = 0
     # Calculating the Connect Flags byte
     connect_flags = (username_flag << 7 | password_flag << 6 |
-                     will_retain << 5 | will_qos << 3 |
+                     will_retain << 5 | qos_level << 3 |
                      will_flag << 2 | clean_session << 1 | reserved)
 
     # Keep Alive timer (in seconds)
@@ -105,7 +105,7 @@ publish_pkt = create_publish_packet(topic, message)
 # publish_pkt.show()
 
 seq = ack.seq + len(connect_pkt)
-for i in range(200):
+for i in range(number_packets):
     publish_pkt = MQTT()/MQTTPublish(topic=topic, value=message)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt)
