@@ -72,6 +72,9 @@ def create_publish_packet(topic="test/topic", message="Hello MQTT"):
     # pkt.len = len(topic) + len(message) + 2 
     return pkt
 
+# Create an IP packet destined for the broker
+ip = IP(dst=broker_ip)
+
 
 def mqtt_publish(src_port):
     # Establish a TCP connection (SYN, SYN+ACK, ACK)
