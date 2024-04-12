@@ -34,7 +34,7 @@ def create_connect_packet(client_id="cm"):
                      will_flag << 2 | clean_session << 1 | reserved)
 
     # Keep Alive timer (in seconds)
-    keep_alive = 60
+    keep_alive = 255
     keep_alive_high_byte = (keep_alive >> 8) & 0xFF  # Shift right by 8 bits to get the high byte
     keep_alive_low_byte = keep_alive & 0xFF  # Mask with 0xFF to get the low byte
 
@@ -74,7 +74,7 @@ def create_connect_packet(client_id="cm"):
 # MQTT Publish Packet
 def create_publish_packet(topic="test/topic", message="Hello MQTT"):
     pkt = MQTT()/MQTTPublish(topic=topic, value=message)
-    pkt.len = len(topic) + len(message) + 2 
+    # pkt.len = len(topic) + len(message) + 2 
     return pkt
 
 # Create an IP packet destined for the broker
@@ -100,7 +100,7 @@ time.sleep(2)
 
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
-MAX_SIZE = 60 * 1024  # 256 KB
+MAX_SIZE = 120 * 1024  # 256 KB
 message = "A" * MAX_SIZE
 
 publish_pkt = create_publish_packet(topic, message)
