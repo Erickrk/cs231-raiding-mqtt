@@ -9,7 +9,7 @@ broker_port = 1883
 number_packets = 20000
 
 # MQTT Connect Packet for version 3.1.1
-def create_connect_packet(client_id="".join(random.choices(string.ascii_uppercase + string.digits, k=2))):
+def create_connect_packet(client_id=""):
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
     proto_level = 4  # 4 indicates MQTT 3.1.1
@@ -49,7 +49,7 @@ def create_connect_packet(client_id="".join(random.choices(string.ascii_uppercas
                                   keep_alive_high_byte, keep_alive_low_byte)
 
     # Payload
-    payload = struct.pack("!H2s", client_id_length, client_id.encode())
+    payload = struct.pack("!H4s", client_id_length, client_id.encode())
 
     # Fixed Header for CONNECT
     # MQTT Packet Type for CONNECT is 1
@@ -77,6 +77,9 @@ ip = IP(dst=broker_ip)
 
 
 def mqtt_publish(src_port):
+    # Generate a unique client ID for each connection
+    client_id = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+
     # Establish a TCP connection (SYN, SYN+ACK, ACK)
     syn = TCP(sport=src_port, dport=broker_port, flags='S', seq=RandInt())
     syn_ack = sr1(ip/syn)
@@ -84,8 +87,8 @@ def mqtt_publish(src_port):
     send(ip/ack)
 
     # Now that the TCP connection is established, we can send MQTT packets
-    # Craft an MQTT CONNECT packet
-    connect_pkt = create_connect_packet()
+    # Craft an MQTT CONNECT packet with the unique client ID
+    connect_pkt = create_connect_packet(client_id=client_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
     # Wait a bit for the broker to process our connection
