@@ -48,7 +48,7 @@ def create_connect_packet(client_id="c1"):
                                   keep_alive_high_byte, keep_alive_low_byte)
 
     # Payload
-    payload = struct.pack("!B", client_id_length) + client_id.encode()
+    payload = struct.pack("!H2s", client_id_length, client_id.encode())
 
     # Fixed Header for CONNECT
     # MQTT Packet Type for CONNECT is 1
