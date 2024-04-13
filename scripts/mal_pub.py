@@ -91,33 +91,39 @@ ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=syn_ack.ack, ack=syn
 send(ip/ack)
 
 # Now that the TCP connection is established, we can send MQTT packets
-# Craft an MQTT CONNECT packet
-connect_pkt = create_connect_packet()
-send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
+# Loop for MQTT connection, sending packets, and disconnecting
+for _ in range(number_packets):
+    # Craft an MQTT CONNECT packet
+    connect_pkt = create_connect_packet()
+    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
-# Wait a bit for the broker to process our connection
-time.sleep(2)
+    # Wait a bit for the broker to process our connection
+    #time.sleep(2)
 
-# Craft an MQTT PUBLISH packet to send a message
-topic = "sensor/data"
-MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * MAX_SIZE
+    # Craft an MQTT PUBLISH packet to send a message
+    topic = "sensor/data"
+    MAX_SIZE = 60 * 1024  # 60 KB
+    message = "A" * MAX_SIZE
 
-publish_pkt = create_publish_packet(topic, message)
-# publish_pkt.show()
+    publish_pkt = create_publish_packet(topic, message)
+    # publish_pkt.show()
 
-seq = ack.seq + len(connect_pkt)
-for i in range(number_packets):
+    seq = ack.seq + len(connect_pkt)
     message_id = random.randint(0, 0xFFFF)  # Generate a unique message ID for each message
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt)
-    time.sleep(5)
+    #time.sleep(5)
 
-# Craft an MQTT DISCONNECT packet to close the session
-#disconnect_pkt = MQTT()/MQTTDisconnect()
-#send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
+    # Craft an MQTT DISCONNECT packet to close the session
+    disconnect_pkt = MQTT()/MQTTDisconnect()
+    send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
 
-# Implement session closing
+# Close the TCP connection (FIN, FIN+ACK, ACK)
+fin = TCP(sport=src_port, dport=broker_port, flags='FA', seq=seq, ack=ack.ack)
+fin_ack = sr1(ip/fin)
+ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=fin_ack.ack, ack=fin_ack.seq + 1)
+send(ip/ack)
+
 
 
