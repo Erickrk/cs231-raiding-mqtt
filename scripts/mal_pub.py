@@ -11,7 +11,7 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets =25
+number_packets = 3
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
@@ -98,7 +98,7 @@ for _ in range(number_packets):
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
     # Wait a bit for the broker to process our connection
-    #time.sleep(2)
+    time.sleep(2)
 
     # Craft an MQTT PUBLISH packet to send a message
     topic = "sensor/data"
