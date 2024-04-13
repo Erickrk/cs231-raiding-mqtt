@@ -1,7 +1,7 @@
 '''
 # subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
 # send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
-
+We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 '''
 
 from scapy.all import *
