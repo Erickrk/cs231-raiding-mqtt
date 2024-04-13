@@ -11,7 +11,7 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets = 20000
+number_packets = 1
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
