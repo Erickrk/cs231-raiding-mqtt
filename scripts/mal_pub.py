@@ -85,20 +85,29 @@ src_port = random.randint(0, 0xFFFF)   # Source port, implemented random value d
 
 
 # Establish a TCP connection (SYN, SYN+ACK, ACK)
-syn = TCP(sport=src_port, dport=broker_port, flags='S', seq=RandInt())
-syn_ack = sr1(ip/syn)
-ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=syn_ack.ack, ack=syn_ack.seq + 1)
-send(ip/ack)
+def establish_tcp_connection(ip, src_port, broker_port):
+    syn = TCP(sport=src_port, dport=broker_port, flags='S', seq=RandInt())
+    syn_ack = sr1(ip/syn)
+    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=syn_ack.ack, ack=syn_ack.seq + 1)
+    send(ip/ack)
+    return ack
 
-# Now that the TCP connection is established, we can send MQTT packets
-# Loop for MQTT connection, sending packets, and disconnecting
+# Close the TCP connection (FIN, FIN+ACK, ACK)
+def close_tcp_connection(ip, src_port, broker_port, seq, ack):
+    fin = TCP(sport=src_port, dport=broker_port, flags='FA', seq=seq, ack=ack.ack)
+    fin_ack = sr1(ip/fin)
+    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=fin_ack.ack, ack=fin_ack.seq + 1)
+    send(ip/ack)
+
+# Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for _ in range(number_packets):
+    ack = establish_tcp_connection(ip, src_port, broker_port)
     # Craft an MQTT CONNECT packet
     connect_pkt = create_connect_packet()
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
     # Wait a bit for the broker to process our connection
-    time.sleep(2)
+    #time.sleep(2)
 
     # Craft an MQTT PUBLISH packet to send a message
     topic = "sensor/data"
@@ -118,12 +127,8 @@ for _ in range(number_packets):
     # Craft an MQTT DISCONNECT packet to close the session
     disconnect_pkt = MQTT()/MQTTDisconnect()
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
+    close_tcp_connection(ip, src_port, broker_port, seq, ack)
 
-# Close the TCP connection (FIN, FIN+ACK, ACK)
-fin = TCP(sport=src_port, dport=broker_port, flags='FA', seq=seq, ack=ack.ack)
-fin_ack = sr1(ip/fin)
-ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=fin_ack.ack, ack=fin_ack.seq + 1)
-send(ip/ack)
 
 
 
