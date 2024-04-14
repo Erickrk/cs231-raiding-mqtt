@@ -9,7 +9,7 @@ topic = "sensor/data"
 
 # create new client instance
 client = mqtt.Client("P1")  
-client.connect(broker_address, qos=1) 
+client.connect(broker_address) 
 
 # Publish sensor data with QoS 2 and retain flag
 try:
