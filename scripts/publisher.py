@@ -11,11 +11,11 @@ topic = "sensor/data"
 client = mqtt.Client("P1")  
 client.connect(broker_address) 
 
-# Publish sensor data with QoS 2
+# Publish sensor data with QoS 2 and retain flag
 try:
     while True:
         sensor_data = random.randint(0, 999)
-        client.publish(topic, sensor_data, qos=2)
+        client.publish(topic, sensor_data, qos=2, retain=True)
         print(f"Data published to {topic}: {sensor_data}")
         time.sleep(5)  # Wait for 5 seconds before next publish
 except KeyboardInterrupt:
