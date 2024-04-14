@@ -15,8 +15,8 @@ client.connect(broker_address)
 try:
     while True:
         sensor_data = random.randint(0, 999)
-        client.publish(topic, sensor_data, qos=1, retain=True)
+        client.publish(topic, sensor_data, qos=2, retain=True)
         print(f"Data published to {topic}: {sensor_data}")
-        time.sleep(5)  # Wait for 5 seconds before next publish
+        #time.sleep(5)  # Wait for 5 seconds before next publish
 except KeyboardInterrupt:
     print("Publisher stopped.")

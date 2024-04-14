@@ -11,7 +11,7 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets = 30
+number_packets = 3000
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
@@ -115,7 +115,7 @@ publish_pkt = create_publish_packet(topic, message)
 # Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for i in range(number_packets):
     # publish_pkt.show()
-    message_id = random.randint(0, 0xFFFF)  # Generate a unique message ID for each message
+    message_id = 8888 # Generate a unique message ID for each message
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
