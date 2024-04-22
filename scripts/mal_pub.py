@@ -112,7 +112,7 @@ seq = ack.seq + len(connect_pkt)
 ack = ack.ack + 1
 ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
 
-seq = seq + 1
+#seq = seq + 1
 
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
