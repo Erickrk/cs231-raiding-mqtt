@@ -99,14 +99,21 @@ def close_tcp_connection(ip, src_port, broker_port, seq, ack):
     ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=fin_ack.ack, ack=fin_ack.seq + 1)
     send(ip/ack)
 
+
 ack = establish_tcp_connection(ip, src_port, broker_port)
-# Craft an MQTT CONNECT packet
+# Craft an MQTT CONNECT packet @TODO: create a function for this
 connect_pkt = create_connect_packet()
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
-# Wait a bit for the broker to process our connection
-#time.sleep(2)
+
+# Wait a bit for the broker to process our connection and then send ACK to CONNACK
+time.sleep(0.1)
 seq = ack.seq + len(connect_pkt)
+ack = ack.ack + 1
+ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
+
+seq = seq + 1
+
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
 MAX_SIZE = 60 * 1024  # 60 KB
