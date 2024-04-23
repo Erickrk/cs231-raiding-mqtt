@@ -108,7 +108,7 @@ send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.
 
 # # Wait a bit for the broker to process our connection and then send ACK to CONNACK
 # time.sleep(0.1)
-# seq = ack.seq + len(connect_pkt)
+seq = ack.seq + len(connect_pkt)
 # ack = ack.ack + 1
 # ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
 # send(ip/ack)
