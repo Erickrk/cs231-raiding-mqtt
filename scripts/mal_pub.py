@@ -134,6 +134,10 @@ for i in range(number_packets):
         ack.ack += 4
         ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
         send(ip/ack)
+    else: # Sending ACK for PUBREC
+        ack.ack += 1
+        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
+        send(ip/ack)
     time.sleep(1)
 
 time.sleep(10)
