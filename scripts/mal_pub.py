@@ -112,6 +112,8 @@ seq = ack.seq + len(connect_pkt)
 ack = ack.ack + 1
 ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
 send(ip/ack)
+# wait for publish and see if we get puback now
+time.sleep(10)
 
 #seq = seq + 1
 
