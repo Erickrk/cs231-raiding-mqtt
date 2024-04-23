@@ -129,7 +129,7 @@ for i in range(number_packets):
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
-    time.sleep(1)
+    time.sleep(0.1)
     # Send ACK after the first publish, but has to consider the received CONNACK
     # For the second time, this is bc of PUBREC
     ack.ack += 4
