@@ -106,14 +106,14 @@ connect_pkt = create_connect_packet()
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq, ack=ack.ack)/connect_pkt)
 
 
-# Wait a bit for the broker to process our connection and then send ACK to CONNACK
-time.sleep(0.1)
-seq = ack.seq + len(connect_pkt)
-ack = ack.ack + 1
-ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
-send(ip/ack)
-# wait for publish and see if we get puback now
-time.sleep(10)
+# # Wait a bit for the broker to process our connection and then send ACK to CONNACK
+# time.sleep(0.1)
+# seq = ack.seq + len(connect_pkt)
+# ack = ack.ack + 1
+# ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack)
+# send(ip/ack)
+# # wait for publish and see if we get puback now
+# time.sleep(10)
 
 #seq = seq + 1
 
@@ -129,6 +129,10 @@ for i in range(number_packets):
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
+    if i == 0:
+        # Send ACK after the first publish
+        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
+        send(ip/ack)
     time.sleep(0.01)
 
 
