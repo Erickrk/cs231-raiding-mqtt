@@ -11,7 +11,7 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets = 1
+number_packets = 5
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
@@ -129,11 +129,12 @@ for i in range(number_packets):
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
-
-    # Send ACK after the first publish
-    ack.ack += 4
-    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
-    send(ip/ack)
+    if i == 0:
+        # Send ACK after the first publish, but has to consider the received CONNACK
+        ack.ack += 4
+        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
+        send(ip/ack)
+    time.sleep(0.01)
 
 time.sleep(10)
 # Craft an MQTT DISCONNECT packet to close the session
