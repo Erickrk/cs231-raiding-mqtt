@@ -14,11 +14,11 @@ client.connect(broker_address)
 # Publish sensor data with QoS 2 and retain flag
 counter =10
 MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * MAX_SIZE
+message = "A" * 2
 
 for _ in range(counter):
-    sensor_data = random.randint(0, 999)
+    # sensor_data = random.randint(0, 999)
     client.publish(topic, message, qos=2, retain=True)
-    print(f"Message {counter} published to {topic}: {sensor_data}")
+    #print(f"Message {counter} published to {topic}: {sensor_data}")
     time.sleep(0.01)  # Wait for 5 seconds before next publish
 
