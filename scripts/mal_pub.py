@@ -131,7 +131,7 @@ for i in range(number_packets):
     seq += len(publish_pkt) # +1 for the ACK?
 
     # Send ACK after the first publish
-    ack.ack += 1
+    ack.ack += 4
     ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
     send(ip/ack)
 
