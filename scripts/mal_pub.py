@@ -120,7 +120,7 @@ seq = ack.seq + len(connect_pkt)
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
 MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * 2
+message = "A" * MAX_SIZE
 publish_pkt = create_publish_packet(topic, message)
 # Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for i in range(number_packets):
@@ -129,16 +129,12 @@ for i in range(number_packets):
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
-    if i == 0:
-        # Send ACK after the first publish, but has to consider the received CONNACK
-        ack.ack += 4
-        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
-        send(ip/ack)
-    else: # Sending ACK for PUBREC
-        ack.ack += 4
-        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
-        send(ip/ack)
     time.sleep(1)
+    # Send ACK after the first publish, but has to consider the received CONNACK
+    # For the second time, this is bc of PUBREC
+    ack.ack += 4
+    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
+    send(ip/ack)
 
 time.sleep(10)
 # Craft an MQTT DISCONNECT packet to close the session
