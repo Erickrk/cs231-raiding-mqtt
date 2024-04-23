@@ -132,6 +132,7 @@ for i in range(number_packets):
     time.sleep(1)
     # Send ACK after the first publish, but has to consider the received CONNACK
     # For the second time, this is bc of PUBREC
+    # It still has a weird behavior, we send the ACK before PUBREC but looks good from a practical perspective
     ack.ack += 4
     ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
     send(ip/ack)

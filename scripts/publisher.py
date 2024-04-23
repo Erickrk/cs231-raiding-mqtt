@@ -14,7 +14,7 @@ client.connect(broker_address)
 # Publish sensor data with QoS 2 and retain flag
 counter =10
 MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * 2
+message = "A" * MAX_SIZE # This generates an interesting behavior in the broker, exchanging a lot of ACKs
 
 for _ in range(counter):
     # sensor_data = random.randint(0, 999)
