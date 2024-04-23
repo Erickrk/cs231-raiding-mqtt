@@ -11,7 +11,7 @@ import random
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
-number_packets = 5
+number_packets = 1
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
@@ -120,7 +120,7 @@ seq = ack.seq + len(connect_pkt)
 # Craft an MQTT PUBLISH packet to send a message
 topic = "sensor/data"
 MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * MAX_SIZE
+message = "A" * 2
 publish_pkt = create_publish_packet(topic, message)
 # Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for i in range(number_packets):
@@ -129,14 +129,13 @@ for i in range(number_packets):
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt)
     seq += len(publish_pkt) # +1 for the ACK?
-    if i == 0:
-        # Send ACK after the first publish
-        ack.ack += 1
-        ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
-        send(ip/ack)
-    time.sleep(0.01)
 
+    # Send ACK after the first publish
+    ack.ack += 1
+    ack = TCP(sport=src_port, dport=broker_port, flags='A', seq=seq, ack=ack.ack)
+    send(ip/ack)
 
+time.sleep(10)
 # Craft an MQTT DISCONNECT packet to close the session
 disconnect_pkt = MQTT()/MQTTDisconnect()
 send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/disconnect_pkt)
