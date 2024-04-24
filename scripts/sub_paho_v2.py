@@ -21,7 +21,7 @@ def on_message(client, userdata, msg):
 broker_address = "192.168.122.48"
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
 #client.on_connect = on_connect(client=None, userdata=None, flags=None, reason_code=None, properties=None)
-#client.on_message = on_message
+client.on_message = on_message
 
 client.connect(broker_address)  # connect to broker with QoS 2
 client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
