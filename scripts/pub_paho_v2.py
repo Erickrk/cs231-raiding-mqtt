@@ -15,7 +15,7 @@ client.connect(broker_address)
 
 
 # Publish sensor data with QoS 2 and retain flag
-counter = 10
+counter = 10000
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * 1 # This generates an interesting behavior in the broker, exchanging a lot of ACKs
 i=0
