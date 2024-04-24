@@ -15,15 +15,15 @@ client.connect(broker_address)
 
 
 # Publish sensor data with QoS 2 and retain flag
-MAX_SIZE = 60 * 1024  # 60 KB
-message = "A" * 1 # This generates an interesting behavior in the broker, exchanging a lot of ACKs
+MAX_SIZE = 240 * 1024  # 60 KB
+message = "A" * MAX_SIZE # This generates an interesting behavior in the broker, exchanging a lot of ACKs
 
-counter = 10000
+counter = 100000
 i=0
 while i < counter:
     # sensor_data = random.randint(0, 999)
     client.publish(topic, message, qos=2, retain=True)
     print(f"Message {i} published to {topic}: {message}")
     i += 1
-    time.sleep(1)  # Wait before next publish, increasing this didnt made it work
+    time.sleep(0.01)  # Wait before next publish, increasing this didnt made it work
 
