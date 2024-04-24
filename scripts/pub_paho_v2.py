@@ -24,5 +24,5 @@ while i < 10:
     client.publish(topic, message, qos=2, retain=True)
     print(f"Message {counter} published to {topic}: {message}")
     i += 1
-    time.sleep(0.1)  # Wait before next publish
+    time.sleep(1)  # Wait before next publish, increasing this didnt made it work
 
