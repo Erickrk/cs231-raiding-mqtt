@@ -21,8 +21,8 @@ message = "A" * 1 # This generates an interesting behavior in the broker, exchan
 i=0
 while i < 10:
     # sensor_data = random.randint(0, 999)
-    client.publish(topic, message, qos=2, retain=True)
-    #print(f"Message {counter} published to {topic}: {sensor_data}")
+    client.publish(topic, message, qos=1, retain=True)
+    print(f"Message {counter} published to {topic}: {sensor_data}")
     i += 1
     time.sleep(0.01)  # Wait before next publish
 
