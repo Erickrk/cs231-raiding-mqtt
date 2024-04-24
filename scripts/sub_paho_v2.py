@@ -19,8 +19,8 @@ def on_message(client, userdata, msg):
 
 # Configure the MQTT client
 broker_address = "192.168.122.48"
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)  # create new instance
-client.on_connect = on_connect
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="S1")  # create new instance
+client.on_connect = on_connect(properties=None)
 client.on_message = on_message
 
 client.connect(broker_address)  # connect to broker with QoS 2

@@ -10,7 +10,7 @@ broker_address = "192.168.122.48"
 topic = "sensor/data"
 
 # create new client instance
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="P1")
 client.connect(broker_address) 
 
 
