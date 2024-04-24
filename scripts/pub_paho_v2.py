@@ -10,12 +10,12 @@ broker_address = "192.168.122.48"
 topic = "sensor/data"
 
 # create new client instance
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="P1")
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="P1")
 client.connect(broker_address) 
 
 
 # Publish sensor data with QoS 2 and retain flag
-counter =10
+counter = 10
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * MAX_SIZE # This generates an interesting behavior in the broker, exchanging a lot of ACKs
 
