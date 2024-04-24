@@ -22,7 +22,7 @@ i=0
 while i < 10:
     # sensor_data = random.randint(0, 999)
     client.publish(topic, message, qos=1, retain=True)
-    print(f"Message {counter} published to {topic}: {sensor_data}")
+    print(f"Message {counter} published to {topic}: {message}")
     i += 1
     time.sleep(0.01)  # Wait before next publish
 
