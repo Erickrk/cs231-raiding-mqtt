@@ -19,7 +19,7 @@ counter = 10000
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * 1 # This generates an interesting behavior in the broker, exchanging a lot of ACKs
 i=0
-while i < 10:
+while i < counter:
     # sensor_data = random.randint(0, 999)
     client.publish(topic, message, qos=2, retain=True)
     print(f"Message {counter} published to {topic}: {message}")
