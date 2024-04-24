@@ -16,9 +16,10 @@ def on_connect(client, userdata, flags, reason_code, properties):
 def on_message(client, userdata, msg):
     print(f"Received message: {msg.payload.decode()} on topic {msg.topic}")
 
+
 # Configure the MQTT client
-broker_address = "192.168.122.48" 
-client = mqtt.Client("C1")  # create new instance
+broker_address = "192.168.122.48"
+client = mqtt.Client("C1", mqtt.CallbackAPIVersion.VERSION1)  # create new instance
 client.on_connect = on_connect
 client.on_message = on_message
 
