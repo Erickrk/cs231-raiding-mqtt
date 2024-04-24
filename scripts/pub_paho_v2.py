@@ -24,5 +24,5 @@ while i < 10:
     client.publish(topic, message, qos=2, retain=True)
     #print(f"Message {counter} published to {topic}: {sensor_data}")
     i += 1
-    time.sleep(0.01)  # Wait for 5 seconds before next publish
+    time.sleep(0.01)  # Wait before next publish
 
