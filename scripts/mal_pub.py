@@ -1,7 +1,7 @@
 '''
-# subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
-# send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
-We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+    # subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
+    # send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
+    We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 '''
 
 from scapy.all import *
@@ -43,12 +43,12 @@ def create_connect_packet(client_id="cm"):
     client_id_length = len(client_id)
 
     # Assembling the Variable Header
-    ''' @TODO: fix this comment
-    !: This specifies that the data should be packed in network (big-endian) byte order.
-    H: This stands for an unsigned short integer, which is 2 bytes. It's used for the length of the protocol name.
-    6s: This stands for a string of 6 characters. It's used for the protocol name itself, which is "MQTT".
-    B: This stands for an unsigned char, which is 1 byte. It's used twice, first for the protocol level and then for the connect flags.
-    H: This is used again for the length of the client ID.
+    '''
+        !: This specifies that the data should be packed in network (big-endian) byte order.
+        H: This stands for an unsigned short integer, which is 2 bytes. It's used for the length of the protocol name.
+        4s: This stands for a string of 4 characters. It's used for the protocol name itself, which is "MQTT".
+        B: This stands for an unsigned char, which is 1 byte. It's used four times, first for the protocol level and then 
+        for the connect flags and lenght of the client ID.
     '''
     variable_header = struct.pack("!H4sBBBB", len(proto_name), proto_name.encode(), proto_level, connect_flags,
                                   keep_alive_high_byte, keep_alive_low_byte)
