@@ -48,7 +48,7 @@ def create_connect_packet(client_id="cm"):
         H: This stands for an unsigned short integer, which is 2 bytes. It's used for the length of the protocol name.
         4s: This stands for a string of 4 characters. It's used for the protocol name itself, which is "MQTT".
         B: This stands for an unsigned char, which is 1 byte. It's used four times, first for the protocol level and then 
-        for the connect flags and lenght of the client ID.
+        for the connect flags and length of the client ID.
     '''
     variable_header = struct.pack("!H4sBBBB", len(proto_name), proto_name.encode(), proto_level, connect_flags,
                                   keep_alive_high_byte, keep_alive_low_byte)
