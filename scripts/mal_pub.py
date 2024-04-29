@@ -8,6 +8,7 @@ from scapy.all import *
 from scapy.layers.inet import IP, TCP
 from scapy.contrib.mqtt import *
 import random
+import uuid
 
 broker_ip = "192.168.122.48"
 broker_port = 1883
@@ -15,6 +16,8 @@ number_packets = 100000
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
+    client_id = str(uuid.uuid4())
+
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
     proto_level = 4  # 4 indicates MQTT 3.1.1
@@ -118,14 +121,14 @@ seq = ack.seq + len(connect_pkt)
 #seq = seq + 1
 
 # Craft an MQTT PUBLISH packet to send a message
-topic = "sensor/data"
+topic = "sensor/" + str(random.randint(1, 65000))
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * MAX_SIZE
 publish_pkt = create_publish_packet(topic, message)
 # Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for i in range(number_packets):
     # publish_pkt.show()
-    message_id = i + 1 # Generate a unique message ID for each message
+    message_id = random.randint(1, 65000) # Generate a unique message ID for each message
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt, verbose=False)
     seq += len(publish_pkt) # +1 for the ACK?
