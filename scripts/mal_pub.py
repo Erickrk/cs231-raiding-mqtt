@@ -121,7 +121,8 @@ seq = ack.seq + len(connect_pkt)
 #seq = seq + 1
 
 # Craft an MQTT PUBLISH packet to send a message
-topic = "sensor/" + str(uuid.uuid4())
+topic = "sensor/" + str(random.randint(1, 100))
+
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * MAX_SIZE
 publish_pkt = create_publish_packet(topic, message)
