@@ -16,7 +16,7 @@ number_packets = 65000
 
 # MQTT Connect Packet for version 3.1.1
 def create_connect_packet(client_id="cm"):
-    client_id = str(uuid.uuid4())
+    client_id = "c" + str(random.randint(1, 10))
 
     # Protocol Name and Level for MQTT 3.1.1
     proto_name = "MQTT"
