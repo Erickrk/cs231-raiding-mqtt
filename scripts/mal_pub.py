@@ -129,7 +129,7 @@ publish_pkt = create_publish_packet(topic, message)
 # Loop for TCP connection, MQTT connection, sending packets, and disconnecting
 for i in range(number_packets):
     # publish_pkt.show()
-    message_id = number_packets - i # Generate a unique message ID for each message
+    message_id = random.randint(1, 64000) # Generate a unique message ID for each message
     publish_pkt = MQTT(QOS=2)/MQTTPublish(topic=topic, value=message, msgid=message_id)
     send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=seq, ack=ack.ack)/publish_pkt, verbose=False)
     seq += len(publish_pkt) # +1 for the ACK?
