@@ -1,3 +1,10 @@
+'''
+    File: sub_paho_v1.py
+    Author: Erick Silva
+    Course: CS231
+    This script is part of the coursework for CS231. It is used to subscribe to a sensor data
+    specific MQTT topic using the Paho MQTT client version 1.3.
+'''
 import paho.mqtt.client as mqtt
 
 # The callback for when the client receives a CONNACK response from the server.

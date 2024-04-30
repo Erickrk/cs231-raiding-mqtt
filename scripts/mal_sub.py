@@ -1,3 +1,10 @@
+'''
+    File: mal_sub.py
+    Author: Erick Silva
+    Course: CS231
+    This script is part of the coursework for CS231. It is used to subscribe to MQTT topics
+    using a known clientID aiming to hijack the session. It also subscribes to SYS.
+'''
 import paho.mqtt.client as mqtt
 
 # The callback for when the client receives a CONNACK response from the server.

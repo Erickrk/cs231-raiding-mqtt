@@ -1,6 +1,9 @@
 '''
-    # subscribe_pkt = MQTT()/MQTTSubscribe(topics=[MQTTTopic(topic="test/topic")])
-    # send(ip/TCP(sport=src_port, dport=broker_port, flags="PA", seq=ack.seq + len(connect_pkt), ack=ack.ack)/subscribe_pkt)
+    File: mal_pub.py
+    Author: Erick Silva
+    Course: CS231
+    This script is part of the coursework for CS231. It is used to create and send MQTT packets with Scapy.
+    On purpose, we don't reply to PUBREC.
     We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 '''
 

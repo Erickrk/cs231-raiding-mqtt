@@ -1,4 +1,7 @@
-## Taken from https://github.com/zeek/zeek/blob/6c88bd115c441f5ccaf5d9d7c8a310d44ff3a937/scripts/base/protocols/mqtt/main.zeek#L257
+##! Adapted by: Erick Silva
+##! Course: CS231
+##! This script is part of the final project for CS231.
+##! Taken from https://github.com/zeek/zeek/blob/6c88bd115c441f5ccaf5d9d7c8a310d44ff3a937/scripts/base/protocols/mqtt/main.zeek#L257
 ##! Implements base functionality for MQTT (v3.1.1) analysis.
 ##! Generates the mqtt.log file.
 
@@ -119,6 +122,8 @@ export {
 	## yet simply causes the message to be logged.
 	global subscribe_expire: function(tbl: table[count] of SubscribeInfo, idx: count): interval;
 
+	global client_ids: table[string] of set[addr] = {};
+
 	## Data structure to track pub/sub messaging state of a given connection.
 	type State: record {
 		## Published messages that haven't been logged yet.
@@ -182,10 +187,25 @@ event mqtt_connect(c: connection, msg: MQTT::ConnectMsg) &priority=5
 	info$proto_name = msg$protocol_name;
 	info$proto_version = versions[msg$protocol_version];
 	info$client_id = msg$client_id;
+
 	if ( msg?$will_topic )
 		info$will_topic = msg$will_topic;
 	if ( msg?$will_msg )
 		info$will_payload = msg$will_msg;
+		
+	## Added to try to get clientID
+	if ( info$client_id in client_ids )
+    {
+        if ( c$id$orig_h !in client_ids[info$client_id] )
+        {
+            print fmt("Potential hijack detected: IP %s is using client ID '%s' which is already in use", c$id$orig_h, info$client_id);
+            add client_ids[info$client_id][c$id$orig_h];
+        }
+    }
+    else
+    {
+        client_ids[info$client_id] = set(c$id$orig_h);
+    }
 	}
 
 event mqtt_connack(c: connection, msg: MQTT::ConnectAckMsg) &priority=5

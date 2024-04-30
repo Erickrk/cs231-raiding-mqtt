@@ -1,3 +1,10 @@
+'''
+    File: sub_paho_v2.py
+    Author: Erick Silva
+    Course: CS231
+    This script is part of the coursework for CS231. It is used to subscribe to a sensor data
+    specific MQTT topic using the Paho MQTT client version 2.0.
+'''
 #@TODO: currently sub not working but connected
 import paho.mqtt.client as mqtt
 
