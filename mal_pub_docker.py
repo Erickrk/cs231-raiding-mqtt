@@ -5,6 +5,8 @@
     This script is part of the coursework for CS231. It is used to create and send MQTT packets with Scapy.
     On purpose, we don't reply to PUBREC.
     We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+    $ docker run -it -p 1883:1883 -p 9001:9001 -v mosquitto.conf:/mosquitto/config/mosquitto.conf eclipse-mosquitto
+
 '''
 
 from scapy.all import *
@@ -123,7 +125,7 @@ seq = ack.seq + len(connect_pkt)
 #seq = seq + 1
 
 # Craft an MQTT PUBLISH packet to send a message
-topic = "sensor/" + str(random.randint(1, 100))
+topic = "sensor/data"
 
 MAX_SIZE = 60 * 1024  # 60 KB
 message = "A" * MAX_SIZE
