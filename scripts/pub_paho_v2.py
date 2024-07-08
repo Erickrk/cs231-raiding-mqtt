@@ -12,7 +12,7 @@ import paho.mqtt.client as mqtt
 
 # Based on: https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html
 # This should be static
-broker_address = "172.17.0.1" 
+broker_address = "172.17.0.2" 
 topic = "sensor/data"
 
 # create new client instance
