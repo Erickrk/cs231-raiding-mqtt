@@ -3,7 +3,7 @@ File: pub_paho_v2.py
 Author: Erick Silva
 Course: CS231
 This script is part of the coursework for CS231. It is used to publish sensor data 
-to a specific MQTT topic using the Paho MQTT client version 2.0.
+to a specific MQTT topic using the Paho MQTT client version 2.1.0
 '''
 
 import time
