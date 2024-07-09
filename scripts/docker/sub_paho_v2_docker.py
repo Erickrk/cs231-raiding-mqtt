@@ -14,10 +14,10 @@ import paho.mqtt.client as mqtt
 # NEW code for both version
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
-        print("Connected with result code " + str(rc))
+        print("Connected with result code " + str(reason_code))
         client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
     if reason_code > 0:
-        print("Failed to connect due to error " + str(rc))
+        print("Failed to connect due to error " + str(reason_code))
 
 
 # The callback for when a PUBLISH message is received from the server.
