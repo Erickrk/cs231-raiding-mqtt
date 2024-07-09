@@ -26,14 +26,13 @@ def on_message(client, userdata, msg):
 
 
 # Configure the MQTT client
-local_bind_address = "172.17.0.1"
-broker_address = "172.17.0.2"
+broker_address = "localhost"
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
 #client.on_connect = on_connect(client=None, userdata=None, flags=None, reason_code=None, properties=None)
 client.on_message = on_message
 
-client.connect(broker_address, bind_address=local_bind_address)  # connect to broker with QoS 2
+client.connect(broker_address)  # connect to broker with QoS 2
 client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.

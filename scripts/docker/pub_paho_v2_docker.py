@@ -12,15 +12,13 @@ import paho.mqtt.client as mqtt
 
 # Based on: https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html
 # This should be static
-local_bind_address = "172.17.0.1"
-
-broker_address = "172.17.0.2" 
+broker_address = "localhost" 
 
 topic = "sensor/data"
 
 # create new client instance
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="P1")
-client.connect(broker_address, bind_address=local_bind_address) 
+client.connect(broker_address) 
 
 # Publish sensor data with QoS 2 and retain flag
 counter = 100
