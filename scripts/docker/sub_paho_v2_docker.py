@@ -26,7 +26,7 @@ def on_message(client, userdata, msg):
 
 
 # Configure the MQTT client
-broker_address = "localhost"
+broker_address = "172.12.0.2"
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
 #client.on_connect = on_connect(client=None, userdata=None, flags=None, reason_code=None, properties=None)
