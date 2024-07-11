@@ -24,15 +24,15 @@ def on_connect(client, userdata, flags, reason_code, properties):
 def on_message(client, userdata, msg):
     print(f"Received message: {msg.payload.decode()} on topic {msg.topic}")
 
-
+# causing reset: localhost
 # Configure the MQTT client
 broker_address = "172.12.0.2"
-
+bind_address = "172.12.0.1"
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
 #client.on_connect = on_connect(client=None, userdata=None, flags=None, reason_code=None, properties=None)
 client.on_message = on_message
 
-client.connect(broker_address)  # connect to broker with QoS 2
+client.connect(broker_address, bind_address=bind_address)  # connect to broker with QoS 2
 client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
