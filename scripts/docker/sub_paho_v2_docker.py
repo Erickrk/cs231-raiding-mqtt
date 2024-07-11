@@ -28,12 +28,12 @@ def on_message(client, userdata, msg):
 # Configure the MQTT client
 broker_address = "172.17.0.2"
 # 172.17.0.2 might be blocked due to docker policies
-local_bind_address = "localhost"
+#local_bind_address = "localhost" #not working
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
 #client.on_connect = on_connect(client=None, userdata=None, flags=None, reason_code=None, properties=None)
 client.on_message = on_message
 
-client.connect(broker_address, bind_address="localhost")  # connect to broker with QoS 2
+client.connect(broker_address)  # connect to broker with QoS 2
 client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
