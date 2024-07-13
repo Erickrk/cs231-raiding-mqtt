@@ -11,7 +11,7 @@ import time
 import paho.mqtt.client as mqtt
 
 # This should be static
-broker_address = "localhost" 
+broker_address = "172.17.0.2" 
 topic = "sensor/data" 
 
 # create new client instance

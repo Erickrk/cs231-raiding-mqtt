@@ -17,7 +17,7 @@ def on_message(client, userdata, msg):
     print(f"Received message: {msg.payload.decode()} on topic {msg.topic}")
 
 # Configure the MQTT client
-broker_address = "localhost" 
+broker_address = "172.17.0.2" 
 client = mqtt.Client("C1")  # create new instance
 client.on_connect = on_connect
 client.on_message = on_message
