@@ -22,7 +22,7 @@ client = mqtt.Client("C1")  # create new instance
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect(broker_address, bind_address='10.0.2.15')  # connect to broker with QoS 2
+client.connect(broker_address)  # connect to broker with QoS 2
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
 client.loop_forever()
