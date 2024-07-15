@@ -5,6 +5,11 @@
     This script is part of the coursework for CS231. It is used to create and send MQTT packets with Scapy.
     On purpose, we don't reply to PUBREC.
     We should drop incoming w/ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+    For nftables: 
+    nft add table inet filter
+    nft add chain inet filter output { type filter hook output priority 0 \; }
+    nft add rule inet filter output tcp flags rst drop
+
 '''
 
 from scapy.all import *

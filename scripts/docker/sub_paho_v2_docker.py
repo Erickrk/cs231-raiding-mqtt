@@ -26,7 +26,7 @@ def on_message(client, userdata, msg):
 
 # causing reset: localhost
 # Configure the MQTT client
-broker_address = "172.17.0.2"
+broker_address = "localhost"
 # 172.17.0.2 might be blocked due to docker policies
 #local_bind_address = "localhost" #not working
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create new instance
@@ -34,7 +34,7 @@ client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="S1")  # create
 client.on_message = on_message
 
 client.connect(broker_address)  # connect to broker with QoS 2
-client.subscribe("sensor/data", qos=1)  # Subscribe to the sensor data topic with QoS 2
+client.subscribe("sensor/data", qos=2)  # Subscribe to the sensor data topic with QoS 2
 
 # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
 client.loop_forever()

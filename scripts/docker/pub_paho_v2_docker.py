@@ -27,7 +27,7 @@ message = "A" * MAX_SIZE # This generates an interesting behavior in the broker,
 
 for i in range(counter):
     # sensor_data = random.randint(0, 999)
-    client.publish(topic, message, qos=1, retain=True)
+    client.publish(topic, message, qos=2, retain=True)
     print(f"Message {i} published to {topic}")
     time.sleep(0.01)  # Wait before next publish, increasing this didnt made it work
 
